@@ -2,6 +2,8 @@ import './util/module-alias';
 import express from 'express';
 import { createPool, Pool } from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { router } from './router/router';
+import morgan from 'morgan';
 
 dotenv.config();
 
@@ -15,22 +17,12 @@ export class App {
   }
 
   private middlewares(): void {
-    //json
-    //cors
-  }
-
-  public async databasePool() {
-    await createPool({
-      user: process.env.MYSQLUSER,
-      password: process.env.MYSQLPASSWORD,
-      host: process.env.MYSQLHOST,
-      port: parseInt(process.env.MYSQLPORT || ''),
-      database: process.env.MYSQLDATABASE,
-    });
+    this.express.use(morgan('tiny'));
+    this.express.use(express.json());
   }
 
   private routes(): void {
-    //this.express.get()
+    this.express.use(router);
   }
 }
 
