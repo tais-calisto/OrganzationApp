@@ -1,9 +1,9 @@
 import './util/module-alias';
 import express from 'express';
-import { createPool, Pool } from 'mysql2/promise';
 import dotenv from 'dotenv';
-import { router } from './router/router';
+import { router } from './routes/router';
 import morgan from 'morgan';
+import authRouter from './routes/authRoutes';
 
 dotenv.config();
 
@@ -23,6 +23,7 @@ export class App {
 
   private routes(): void {
     this.express.use(router);
+    this.express.use(authRouter);
   }
 }
 
