@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { router } from './routes/router';
 import morgan from 'morgan';
 import authRouter from './routes/authRoutes';
+import { ClientHttp2Session, connect } from 'http2';
 
 dotenv.config();
 

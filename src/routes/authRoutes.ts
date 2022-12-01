@@ -1,4 +1,5 @@
 import { authenticationController } from '@src/controllers/authController';
+import { connect } from '@src/database';
 import { Router } from 'express';
 import { body, CustomValidator } from 'express-validator';
 
@@ -33,6 +34,23 @@ const isSpecialChar: CustomValidator = (value) => {
   }
 };
 
+const isEmailInUse: CustomValidator = async (value) => {
+  const searchEmail = await connect
+    .query(`SELECT * FROM user_tbl WHERE user_email = '${value}'`)
+    .then((result) => {
+      const [rows] = result;
+      if (Array.isArray(rows)) {
+        if (rows.length > 0) {
+          return Promise.reject('E-mail já cadastrado');
+        } else {
+          return Promise.resolve();
+        }
+      } else {
+        return Promise.reject('Algo deu errado');
+      }
+    });
+};
+
 router.post(
   '/register',
   body('username').not().isEmpty().withMessage('Campo nome é obrigatório'),
@@ -41,7 +59,8 @@ router.post(
     .isEmpty()
     .withMessage('Campo e-mail é obrigatório')
     .isEmail()
-    .withMessage('Por favor, escreva um e-mail válido'),
+    .withMessage('Por favor, escreva um e-mail válido')
+    .custom(isEmailInUse),
   body('userpassword')
     .not()
     .isEmpty()

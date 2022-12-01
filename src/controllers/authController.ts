@@ -16,14 +16,16 @@ class Authentication {
 
     const userID = crypto.randomUUID({ disableEntropyCache: true });
 
-    const databaseConnection = await connect();
-    const createUserInDatabase = await databaseConnection
+    return connect
       .execute(
         `INSERT INTO user_tbl (user_id, user_name, user_email, user_password) VALUES (?,?,?,?)`,
         [userID, req.body.username, req.body.useremail, req.body.userpassword]
       )
       .then((result) => {
         console.log(result);
+        return res
+          .status(StatusCodes.CREATED)
+          .json({ message: 'Registro realizado com sucesso' });
       })
       .catch((error) => {
         throw new CustomError(
@@ -31,10 +33,6 @@ class Authentication {
           StatusCodes.BAD_GATEWAY
         );
       });
-
-    return res
-      .status(StatusCodes.CREATED)
-      .json({ message: 'Registro realizado com sucesso' });
   };
 }
 
