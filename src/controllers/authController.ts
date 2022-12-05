@@ -4,8 +4,16 @@ import crypto from 'crypto';
 import { connect } from '@src/database';
 import { StatusCodes } from 'http-status-codes';
 import CustomError from '@src/erros/customError';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 class Authentication {
+  public hashPassword = async (password: string) => {
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+    return hashPassword;
+  };
+
   public register = async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -13,13 +21,12 @@ class Authentication {
         .status(StatusCodes.BAD_REQUEST)
         .json({ errors: errors.array() });
     }
-
     const userID = crypto.randomUUID({ disableEntropyCache: true });
-
+    const password = await this.hashPassword(req.body.userpassword);
     return connect
       .execute(
         `INSERT INTO user_tbl (user_id, user_name, user_email, user_password) VALUES (?,?,?,?)`,
-        [userID, req.body.username, req.body.useremail, req.body.userpassword]
+        [userID, req.body.username, req.body.useremail, password]
       )
       .then((result) => {
         console.log(result);
