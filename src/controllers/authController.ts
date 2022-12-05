@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import CustomError from '@src/erros/customError';
 import bcrypt from 'bcrypt';
 import { jwtOptions } from '@src/util/jwt';
+import { oneDay } from '@src/util/date';
 
 class Authentication {
   public createUserResponse(userName: string, userID: string): object {
@@ -28,6 +29,7 @@ class Authentication {
         .status(StatusCodes.BAD_REQUEST)
         .json({ errors: errors.array() });
     }
+
     const userID = crypto.randomUUID({ disableEntropyCache: true });
     const password = await this.hashPassword(req.body.userpassword);
     const user = this.createUserResponse(req.body.username, userID);
@@ -38,9 +40,12 @@ class Authentication {
         `INSERT INTO user_tbl (user_id, user_name, user_email, user_password) VALUES (?,?,?,?)`,
         [userID, req.body.username, req.body.useremail, password]
       )
-      .then((result) => {
-        console.log(result);
-        return res.status(StatusCodes.CREATED).json({ user: user, token });
+      .then(() => {
+        res.cookie('token', token, {
+          httpOnly: true,
+          expires: new Date(Date.now() + oneDay),
+        });
+        return res.status(StatusCodes.CREATED).json({ user: user });
       })
       .catch((error) => {
         throw new CustomError(
