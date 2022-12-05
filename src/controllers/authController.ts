@@ -5,9 +5,16 @@ import { connect } from '@src/database';
 import { StatusCodes } from 'http-status-codes';
 import CustomError from '@src/erros/customError';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { jwtOptions } from '@src/util/jwt';
 
 class Authentication {
+  public createUserResponse(userName: string, userID: string): object {
+    return {
+      name: userName,
+      id: userID,
+    };
+  }
+
   public hashPassword = async (password: string) => {
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
@@ -23,6 +30,9 @@ class Authentication {
     }
     const userID = crypto.randomUUID({ disableEntropyCache: true });
     const password = await this.hashPassword(req.body.userpassword);
+    const user = this.createUserResponse(req.body.username, userID);
+    const token = jwtOptions.creatJWT(user);
+
     return connect
       .execute(
         `INSERT INTO user_tbl (user_id, user_name, user_email, user_password) VALUES (?,?,?,?)`,
@@ -30,9 +40,7 @@ class Authentication {
       )
       .then((result) => {
         console.log(result);
-        return res
-          .status(StatusCodes.CREATED)
-          .json({ message: 'Registro realizado com sucesso' });
+        return res.status(StatusCodes.CREATED).json({ user: user, token });
       })
       .catch((error) => {
         throw new CustomError(
