@@ -34,7 +34,7 @@ const isSpecialChar: CustomValidator = (value) => {
   }
 };
 
-const isEmailInUse: CustomValidator = async (value) => {
+const isEmailAvaliable: CustomValidator = async (value) => {
   const searchEmail = await connect
     .query(`SELECT * FROM user_tbl WHERE user_email = '${value}'`)
     .then((result) => {
@@ -51,6 +51,23 @@ const isEmailInUse: CustomValidator = async (value) => {
     });
 };
 
+const isEmailValid: CustomValidator = async (value) => {
+  const searchEmail = await connect
+    .query(`SELECT * FROM user_tbl WHERE user_email = '${value}'`)
+    .then((result) => {
+      const [rows] = result;
+      if (Array.isArray(rows)) {
+        if (rows.length > 0) {
+          return Promise.resolve();
+        } else {
+          return Promise.reject('E-mail não cadastrado');
+        }
+      } else {
+        return Promise.reject('Algo deu errado');
+      }
+    });
+};
+
 router.post(
   '/register',
   body('username').not().isEmpty().withMessage('Campo nome é obrigatório'),
@@ -60,7 +77,7 @@ router.post(
     .withMessage('Campo e-mail é obrigatório')
     .isEmail()
     .withMessage('Por favor, escreva um e-mail válido')
-    .custom(isEmailInUse),
+    .custom(isEmailAvaliable),
   body('userpassword')
     .not()
     .isEmpty()
@@ -72,6 +89,19 @@ router.post(
     .custom(isNumber)
     .custom(isSpecialChar),
   authenticationController.register
+);
+
+router.post(
+  '/login',
+  body('useremail')
+    .not()
+    .isEmpty()
+    .withMessage('Campo e-mail é obrigatório')
+    .isEmail()
+    .withMessage('Por favor, escreva um e-mail válido')
+    .custom(isEmailValid),
+  body('userpassword').not().isEmpty().withMessage('Campo senha é obrigatório'),
+  authenticationController.login
 );
 
 export default router;
