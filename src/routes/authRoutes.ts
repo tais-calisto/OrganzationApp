@@ -2,6 +2,7 @@ import { authenticationController } from '@src/controllers/authController';
 import { connect } from '@src/database';
 import { Router } from 'express';
 import { body, CustomValidator } from 'express-validator';
+import { RowDataPacket } from 'mysql2';
 
 const router: Router = Router();
 
@@ -36,34 +37,30 @@ const isSpecialChar: CustomValidator = (value) => {
 
 const isEmailAvaliable: CustomValidator = async (value) => {
   const searchEmail = await connect
-    .query(`SELECT * FROM user_tbl WHERE user_email = '${value}'`)
-    .then((result) => {
-      const [rows] = result;
-      if (Array.isArray(rows)) {
-        if (rows.length > 0) {
-          return Promise.reject('E-mail já cadastrado');
-        } else {
-          return Promise.resolve();
-        }
+    .query<RowDataPacket[]>(
+      `SELECT * FROM user_tbl WHERE user_email = '${value}'`
+    )
+    .then((response) => {
+      const result = response[0];
+      if (result.length > 0) {
+        return Promise.reject('E-mail já cadastrado');
       } else {
-        return Promise.reject('Algo deu errado');
+        return Promise.resolve();
       }
     });
 };
 
-const isEmailValid: CustomValidator = async (value) => {
+const isEmailRegistered: CustomValidator = async (value) => {
   const searchEmail = await connect
-    .query(`SELECT * FROM user_tbl WHERE user_email = '${value}'`)
-    .then((result) => {
-      const [rows] = result;
-      if (Array.isArray(rows)) {
-        if (rows.length > 0) {
-          return Promise.resolve();
-        } else {
-          return Promise.reject('E-mail não cadastrado');
-        }
+    .query<RowDataPacket[]>(
+      `SELECT * FROM user_tbl WHERE user_email = '${value}'`
+    )
+    .then((response) => {
+      const result = response[0];
+      if (result.length > 0) {
+        return Promise.resolve();
       } else {
-        return Promise.reject('Algo deu errado');
+        return Promise.reject('E-mail não cadastrado');
       }
     });
 };
@@ -99,7 +96,7 @@ router.post(
     .withMessage('Campo e-mail é obrigatório')
     .isEmail()
     .withMessage('Por favor, escreva um e-mail válido')
-    .custom(isEmailValid),
+    .custom(isEmailRegistered),
   body('userpassword').not().isEmpty().withMessage('Campo senha é obrigatório'),
   authenticationController.login
 );

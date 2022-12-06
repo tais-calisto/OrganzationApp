@@ -94,8 +94,8 @@ class Authentication {
             user.user_id,
             user.user_email
           );
-          jwtOptions.attachCookiesToResponse(res, user);
-          return res.status(StatusCodes.CREATED).json({ user });
+          jwtOptions.attachCookiesToResponse(res, userToken);
+          return res.status(StatusCodes.CREATED).json({ userToken });
         }
       });
   };
