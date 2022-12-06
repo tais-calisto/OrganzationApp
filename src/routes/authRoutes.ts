@@ -101,4 +101,6 @@ router.post(
   authenticationController.login
 );
 
+router.get('/logout', authenticationController.logout);
+
 export default router;

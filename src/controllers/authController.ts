@@ -99,6 +99,14 @@ class Authentication {
         }
       });
   };
+
+  public logout = async (req: Request, res: Response) => {
+    res.cookie('token', 'logout', {
+      httpOnly: true,
+      expires: new Date(Date.now()),
+    });
+    res.status(StatusCodes.OK).json('Deslogado com sucesso');
+  };
 }
 
 export const authenticationController = new Authentication();
