@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { router } from './routes/router';
 import morgan from 'morgan';
 import authRouter from './routes/authRoutes';
-import { ClientHttp2Session, connect } from 'http2';
+import cooietParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -20,6 +20,7 @@ export class App {
   private middlewares(): void {
     this.express.use(morgan('tiny'));
     this.express.use(express.json());
+    this.express.use(cooietParser());
   }
 
   private routes(): void {
